@@ -1,56 +1,45 @@
 (() => {
-	// --- Theme Generation Logic ---
-	const themesByCategory = {
-		今の状態・心境: [
-			"今の気分をひとことで言うと？",
-			"今日のエネルギーレベルは？ (1-5段階)",
-			"今、一番頭の中を占めていることは？（軽く一言で）",
-			"このミーティングに、どんな気持ちで臨んでいますか？",
-			"今日の集中力を高めるために、何か工夫していることはありますか？",
-		],
-		最近の出来事・学び: [
-			"最近あった、ちょっと嬉しかったことは？",
-			"この1週間で学んだことや発見は？（小さなことでもOK）",
-			"仕事（またはプライベート）で、小さな成功体験はありましたか？",
-			"最近、思わず「へぇ！」と思ったことは？",
-			"昨日一日を振り返って、一番印象に残っていることは？",
-		],
-		未来・期待: [
-			"このミーティングで、特に話したいこと・聞きたいことは？（もしあれば）",
-			"今日、どんな良いことがあると嬉しいですか？",
-			"今週（または今日）、楽しみにしていることは？",
-			"このミーティングが終わった時、どんな気分になっていたいですか？",
-			"今日一日、どんな風に過ごしたいですか？",
-		],
-		チーム・関係性: [
-			"このチームで一緒に仕事をしていて「面白いな」と感じる点は？",
-			"最近、チームメンバーから（仕事に限らず）刺激を受けたことは？",
-			"ちょっとした雑談：最近ハマっていること、教えてください！",
-			"お互いをより良く知るために、聞いてみたい軽い質問は？",
-			"このチームの「良いところ」を一つ挙げるとしたら？",
-		],
-		視点・探求: [
-			"もし、今日一日を「色」で表すとしたら何色？",
-			"最近見つけた、ちょっと面白いものや情報は？",
-			"今日の仕事（または一日）を、どんな「一言」で始めたいですか？",
-			"今の気分を天気で例えると？",
-			"もし魔法が一つ使えるなら、今どんなことに使いたい？（小さなことでOK）",
-		],
-	};
-
 	// DOM要素は DOMContentLoaded 内で取得する
-	let themeDisplay, generateBtn, categorySelect;
+	let themeDisplay;
+	let generateBtn;
+	let categorySelect;
+	// テーマデータは fetch で取得する
+	let themesData = {};
+
+	// themes.json を非同期で読み込む関数
+	async function loadThemes() {
+		try {
+			const response = await fetch("themes.json");
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			themesData = await response.json();
+			console.log("テーマデータを読み込みました:", themesData);
+		} catch (error) {
+			console.error("テーマデータの読み込みに失敗しました:", error);
+			// エラー発生時、ユーザーに通知するなどの処理を追加できます
+			if (themeDisplay) {
+				themeDisplay.textContent = "テーマデータの読み込みに失敗しました。";
+			}
+		}
+	}
 
 	function populateCategories() {
-		const categories = Object.keys(themesByCategory);
+		// themesData が空の場合は処理を中断
+		if (Object.keys(themesData).length === 0) {
+			console.error("populateCategories: themesData が空です。");
+			return;
+		}
+
+		const categories = Object.keys(themesData);
 		const categoryPrefixes = ["😊", "💡", "🚀", "🤝", "🎨"];
 		categories.forEach((category, index) => {
 			const option = document.createElement("option");
 			option.value = category;
 			const prefix = categoryPrefixes[index]
-				? categoryPrefixes[index] + " "
+				? `${categoryPrefixes[index]} `
 				: "";
-			option.textContent = prefix + category;
+			option.textContent = `${prefix}${category}`;
 			// categorySelect はこの関数が呼ばれる時点で取得済みである必要がある
 			if (categorySelect) {
 				categorySelect.appendChild(option);
@@ -66,13 +55,20 @@
 			console.error("generateTheme: 必要なDOM要素が見つかりません。");
 			return;
 		}
+		// themesData が空の場合は処理を中断
+		if (Object.keys(themesData).length === 0) {
+			console.error("generateTheme: themesData が空です。");
+			themeDisplay.textContent = "テーマデータが読み込まれていません。";
+			return;
+		}
+
 		const selectedCategory = categorySelect.value;
 		let themesToChooseFrom = [];
 
 		if (selectedCategory === "all") {
-			themesToChooseFrom = Object.values(themesByCategory).flat();
+			themesToChooseFrom = Object.values(themesData).flat();
 		} else {
-			themesToChooseFrom = themesByCategory[selectedCategory];
+			themesToChooseFrom = themesData[selectedCategory];
 		}
 
 		if (!themesToChooseFrom || themesToChooseFrom.length === 0) {
@@ -94,7 +90,8 @@
 	}
 
 	// --- 初期化処理 ---
-	document.addEventListener("DOMContentLoaded", () => {
+	document.addEventListener("DOMContentLoaded", async () => {
+		// 先にDOM要素を取得
 		themeDisplay = document.getElementById("themeDisplay");
 		generateBtn = document.getElementById("generateBtn");
 		categorySelect = document.getElementById("categorySelect");
@@ -104,9 +101,20 @@
 			return;
 		}
 
-		populateCategories(); // DOM取得後にカテゴリを populate
-		themeDisplay.textContent =
-			"カテゴリを選んで「テーマを決定！」ボタンを押してね！";
-		generateBtn.addEventListener("click", generateTheme);
+		// テーマデータを非同期で読み込む
+		await loadThemes();
+
+		// データ読み込み後にカテゴリ生成とイベントリスナー設定
+		// themesData が正常に読み込めたか確認してから populateCategories を呼ぶ
+		if (Object.keys(themesData).length > 0) {
+			populateCategories(); // DOM取得後、データ読み込み後にカテゴリを populate
+			themeDisplay.textContent =
+				"カテゴリを選んで「テーマを決定！」ボタンを押してね！";
+			generateBtn.addEventListener("click", generateTheme);
+		} else {
+			// データ読み込み失敗時の処理（loadThemes内でエラー表示済みの場合が多い）
+			themeDisplay.textContent =
+				themeDisplay.textContent || "テーマデータの準備ができませんでした。";
+		}
 	});
 })();
