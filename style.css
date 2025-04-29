@@ -48,3 +48,19 @@ body > .flex {
     transform: scale(0.98) translateY(0); /* Slightly shrink the button */
     filter: brightness(0.95); /* Slightly darken the button */
 }
+
+/* GitHub Link Style */
+#github-link {
+    position: fixed;
+    bottom: 1rem; /* 16px */
+    right: 1rem; /* 16px */
+    z-index: 20;
+    /* color プロパティは画像には不要 */
+    opacity: 0.6;
+    transition: opacity 0.2s ease-in-out;
+}
+
+#github-link:hover {
+    opacity: 1;
+    /* color プロパティは画像には不要 */
+}
