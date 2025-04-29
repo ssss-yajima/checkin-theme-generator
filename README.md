@@ -2,6 +2,9 @@
 
 A simple web application to generate random check-in themes for meetings.
 
+[https://ssss-yajima.github.io/checkin-theme-generator/](https://ssss-yajima.github.io/checkin-theme-generator/)
+
+
 ## ✨ Features
 
 *   Generates random check-in questions.
@@ -11,8 +14,7 @@ A simple web application to generate random check-in themes for meetings.
 
 ## 🚀 Usage
 
-Simply open the `index.html` file in your browser or visit the deployed GitHub Pages site:
-[https://ssss-yajima.github.io/checkin-theme-generator/](https://ssss-yajima.github.io/checkin-theme-generator/)
+Simply open the `index.html` file in your browser or visit the deployed GitHub Pages site.
 
 Select a theme category from the dropdown (or choose "All Themes") and click the "Generate Theme!" button.
 
